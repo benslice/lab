@@ -8,26 +8,23 @@ Usage:
    lab [options] open <filename> 
    lab [options] new 
    lab [options] last
-   lab [options] list 
    lab [options] list [projects | keywords | attachments]
    lab [options] search <search_string>
    lab shots
 
 Options:
-  -h --help             Show this screen.
-  -p --project=<proj> Project selector 
-  -k --keywords=kwds  Keyword selectors (for new, list)
-  -d --date=<datestr>   Date specifier YYMMDD
-  -l --long             Long (for list, search)
-  -a --attachments      Attachments (for last, list, open)
+  -h --help             Show this help
+  -p --project=<proj>   project selector            (new, last, list, search)
+  -k --keywords=kwds    keyword selectors           (new, last, list, search)
+  -d --date=<datestr>   Date specifier YYMMDD                     (new, list)
+  -l --long             Long                                   (list, search)
+  -a --attachments      Attachments                        (last, list, open)
 
 
 Notes:
    `search` is implemented with fgrep, and does not support regex
    Print a ToDo list with (e.g.)
        lab search '[ ]' -l | enscript -r -2
-
-
 
 """
 sections = ['Project', 'Keywords', 'Goal', 'Log Entry', 'Summary', 'Attachments', 'Previous', 'Next']
@@ -41,7 +38,6 @@ text_types = ['m', 'c', 'md', 'txt', 'tsv', 'csv']
 # extensions to open with system open() 
 open_types = ['pdf', 'xls', 'xlsx', 'doc', 'docx', 'jpg', 'pptx']
 
-# extensions to reveal instead of open (in addition to folders...)
 
 from docopt import docopt
 import subprocess
@@ -257,11 +253,35 @@ class entry:
 
       return result
 
+def command_new(args):
+   """create and open a new entry"""
+
+   new_entry = entry(date=args['--date'], 
+                     project=args['--project'],
+                     keywords=args['--keywords'])
+
+   # get last entry in this project, if exists, and link them
+   # only do this if "today," i.e. no --date passed
+   if args['--date'] is None:
+      old_entries = get_entries(project=args['--project'])
+      if len(old_entries) > 0:
+         old_entry = old_entries[-1]
+         old_entry.link_next(new_entry)
+         new_entry.link_prev(old_entry)
+
+         # rewrite old file
+         old_entry.to_file()
+
+   new_entry.to_file()
+
+   # lastly, open the file, fudging args
+   args['<filename>'] = new_entry.filename
+   command_open(args, folder=new_entry.folder)
+
 def command_last(args):
    """open the last entry in the notebook by name (not timestamp) """
    
    entries = get_entries(project=args['--project'],
-                              date=args['--date'],
                               keywords=args['--keywords'])
 
    entries = [e.filename for e in entries]
@@ -396,7 +416,6 @@ def util_search(args):
    #  print(' '.join(command))
    subprocess.call(command, cwd=entry_dir)
 
-
 def get_entries(project=None, date=None, keywords=None):
    """ return a filtered list of entry objects """
    files = os.listdir(entry_dir)
@@ -419,28 +438,7 @@ if __name__ == '__main__':
    args = docopt(doc)
 
    if args['new']:
-      new_entry = entry(date=args['--date'], 
-                        project=args['--project'],
-                        keywords=args['--keywords'])
-
-      # get last entry in this project, if exists, and link them
-      # only do this if "today," i.e. no --date passed
-      if args['--date'] is None:
-         old_entries = get_entries(project=args['--project'])
-         if len(old_entries) > 0:
-            old_entry = old_entries[-1]
-            old_entry.link_next(new_entry)
-            new_entry.link_prev(old_entry)
-
-            # rewrite old file
-            old_entry.to_file()
-
-      new_entry.to_file()
-
-      # lastly, open the file, fudging args
-      args['<filename>'] = new_entry.filename
-      command_open(args, folder=new_entry.folder)
-
+      command_new(args)
    elif args['last']:
       command_last(args)
    elif args['list']:
