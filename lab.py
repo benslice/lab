@@ -116,7 +116,6 @@ class entry:
       else:
          return False
 
-
    def get_date(self):
       """ return (and set) string verion of date """
       if self.date_str is None:
@@ -315,6 +314,12 @@ def command_open(args, folder=entry_dir):
 def command_list(args):
    """
    list the entries in the entry folder
+   -a will filter by has attachments
+   -l is the long list
+   -l -a will additionally list attachments
+
+   -l with "keywords" or "projects" will wrap items in quotes
+
    """
    # apply global option filters 
    entries = get_entries(project=args['--project'],
@@ -338,8 +343,8 @@ def command_list(args):
          result = ['"'+x+'"' for x in result]
       [print(x) for x in result]
 
-   elif args['attachments']:
-      print("list attachments")
+   elif args['--attachments']:
+      entries = [x for x in entries if len(x.attachments) > 1]
    else:
 
       # long list entries
