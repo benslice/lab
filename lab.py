@@ -27,22 +27,36 @@ Notes:
        lab search '[ ]' -l | enscript -r -2
 
 """
-sections = ['Project', 'Keywords', 'Goal', 'Log Entry', 'Summary', 'Attachments', 'Previous', 'Next']
-entry_dir = '/Users/bvander/labbook/entries/'
-shot_path = '/Users/bvander/labbook/shots/'
-jekyll_dir = '/Users/bvander/labbook/site/_posts/'
-
-# extensions to open in default (text-edit)
-text_types = ['m', 'c', 'md', 'txt', 'tsv', 'csv']
-
-# extensions to open with system open() 
-open_types = ['pdf', 'xls', 'xlsx', 'doc', 'docx', 'jpg', 'pptx']
-
 
 from docopt import docopt
 import subprocess
 import os
 import sys
+
+
+
+## get global options 
+# check environment variables first
+# fall back to defaults relative to lab executable
+
+
+exe_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+entry_dir = os.getenv('LAB_ENTRY_DIR', default=exe_dir+'/entries/')
+shot_dir = os.getenv('LAB_SHOT_DIR', default=exe_dir+'/shots/')
+jekyll_dir = os.getenv('LAB_JEKYLL_DIR', default=exe_dir+'/site/_posts/')
+
+# Everything is currently geared for OSX
+# Attachments will be opened in a text editor, or using the open command to lauch the
+# right program. Any file with an extention not on these list will be "revealed" in Finder.
+
+# extensions to open in OS default text editor (text-edit)
+text_types = os.getenv('LAB_TEXT_EXT', default='m,c,md,txt,tsv,csv')
+text_types = text_types.split(',')
+
+# extensions to open with system open() 
+open_types = os.getenv('LAB_OPEN_EXT', default='pdf,xls,xlsx,doc,docx,jpg,pptx')
+open_types = open_types.split(',')
 
 
 class entry:
@@ -228,7 +242,7 @@ class entry:
       d = datetime.datetime.strptime(result['DateStr'], '%B %d, %Y')
       result['Date'] = d.strftime('%y%m%d')
 
-      sec = sections.copy()
+      sec = ['Project', 'Keywords', 'Goal', 'Log Entry', 'Summary', 'Attachments', 'Previous', 'Next']
       sec.append('never find me')
       sec.reverse()
 
@@ -326,7 +340,7 @@ def command_list(args):
                               date=args['--date'],
                               keywords=args['--keywords'])
 
-   # list projects or keywords
+   # special commands, list projects or keywords
    if args['projects']:
       result = list(set([x.project for x in entries]))
       result.sort()
@@ -343,9 +357,11 @@ def command_list(args):
          result = ['"'+x+'"' for x in result]
       [print(x) for x in result]
 
-   elif args['--attachments']:
-      entries = [x for x in entries if len(x.attachments) > 1]
+   # default, list entries
    else:
+
+      if args['--attachments']:
+         entries = [x for x in entries if len(x.attachments) > 1]
 
       # long list entries
       if args['--long']:
@@ -451,7 +467,7 @@ if __name__ == '__main__':
    elif args['open']:
       command_open(args)
    elif args['shots']:
-      util_open_path(shot_path)
+      util_open_path(shot_dir)
    elif args['search']:
       util_search(args)
 
