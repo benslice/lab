@@ -11,7 +11,7 @@ Usage:
    lab [options] list [projects | keywords]
    lab [options] search <search_string>
    lab [options] validate
-   lab [options] relocate <path1> <path2>
+   lab [options] replace <string1> <string2>
    lab shots
 
 Options:
@@ -399,14 +399,29 @@ def command_validate(args):
    for e in entries:
       if len(e.attachments) > 0:
          for a in e.attachments.split('\n'):
-            if not os.path.exists(a):
+            # remove escape sequences (for files with ' ' in the name)
+            a = a.replace('\\', '')
+            if not os.path.exists(a.strip()):
                print(e.filename + '\t' + a)
 
 
    
+def command_replace(args):
+   """
+   In the selected entries, replace all instances of one string with another.
+   This is meant for attachments, but will also be applied to the Log Entry section.
+   Files with a change get their names printed.
+   """
+   entries = get_entries(project=args['--project'],
+                              date=args['--date'],
+                              keywords=args['--keywords'])
 
-
-   
+   for e in entries:
+      if (args['<string1>'] in e.log) or (args['<string1>'] in e.attachments):
+         print(e.filename)
+         e.log = e.log.replace(args['<string1>'], args['<string2>'])
+         e.attachments = e.attachments.replace(args['<string1>'], args['<string2>'])
+         e.to_file()
 
 
 def util_open_path(path, reveal=False, text=False):
@@ -497,6 +512,8 @@ if __name__ == '__main__':
       util_open_path(shot_dir)
    elif args['search']:
       util_search(args)
+   elif args['replace']:
+      command_replace(args)
    else:
       print(doc)
 
