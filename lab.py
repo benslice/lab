@@ -8,8 +8,10 @@ Usage:
    lab [options] open <filename> 
    lab [options] new 
    lab [options] last
-   lab [options] list [projects | keywords | attachments]
+   lab [options] list [projects | keywords]
    lab [options] search <search_string>
+   lab [options] validate
+   lab [options] relocate <path1> <path2>
    lab shots
 
 Options:
@@ -63,7 +65,7 @@ class entry:
    """
    Holds a single entry
    """
-   def __init__(self, args=None, folder=None, filename=None, date=None, location='Home',
+   def __init__(self, args=None, folder=None, filename=None, date=None, location='',
          project='entry', keywords='', previous='', next=''):
       """
       read in entry from a file or create a blank entry
@@ -374,7 +376,7 @@ def command_list(args):
             if args['--attachments']:
                # indent and print out filenames, not paths, plus an extra newline
                for a in e.attachments.split('\n'):
-                  print('\t' + a.strip().split('/')[-1])
+                  print('\t' + os.path.basename(a))
                print()
 
 
@@ -382,6 +384,29 @@ def command_list(args):
       else:
          for e in entries:
             print(e.filename.split('/')[-1])
+
+
+def command_validate(args):
+   """ 
+   validation routines:
+   Check for missing attachments
+   """
+   entries = get_entries(project=args['--project'],
+                              date=args['--date'],
+                              keywords=args['--keywords'])
+
+   # check for missing attachments
+   for e in entries:
+      if len(e.attachments) > 0:
+         for a in e.attachments.split('\n'):
+            if not os.path.exists(a):
+               print(e.filename + '\t' + a)
+
+
+   
+
+
+   
 
 
 def util_open_path(path, reveal=False, text=False):
@@ -466,8 +491,12 @@ if __name__ == '__main__':
       command_list(args)
    elif args['open']:
       command_open(args)
+   elif args['validate']:
+      command_validate(args)
    elif args['shots']:
       util_open_path(shot_dir)
    elif args['search']:
       util_search(args)
+   else:
+      print(doc)
 
