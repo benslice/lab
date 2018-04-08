@@ -109,10 +109,9 @@ class entry:
       if self.project is None:
          self.project = 'entry'
 
-      # file contents overwrite supplied options, do last
-      if os.path.exists(self.folder + self.filename):
+      if os.path.exists(os.path.join(self.folder, self.filename)):
          try:
-            contents = self.parse_sections(self.folder + self.filename)
+            contents = self.parse_sections(os.path.join(self.folder , self.filename))
             self.date        = contents['Date']
             self.date_str    = contents['DateStr']
             self.location    = contents['Location']
@@ -128,8 +127,6 @@ class entry:
             sys.exit('error parsing %s section of %s' % (err, self.filename))
          except:
             sys.exit('unknown error parsing %s' % self.filename)
-
-         
 
    def has_keywords(self, keywords):
       """ parse keyword strings to sets and check for intersection """
@@ -178,7 +175,7 @@ class entry:
       assumes full path, or entry_dir
       """
       if filename is None:
-         filename = entry_dir + self.filename
+         filename = os.path.join(entry_dir, self.filename)
 
       fid = open(filename, 'w')
 
@@ -210,7 +207,7 @@ class entry:
       filename = self.get_jekyll_date()
       filename += '-' + self.project + '.md'
 
-      fid = open(jekyll_dir+filename, 'w')
+      fid = open(os.path.join(jekyll_dir,filename), 'w')
 
 
       # yaml front matter
@@ -317,14 +314,14 @@ def command_last(args):
          for a in entry(filename=entries[-1]).attachments.split('\n'):
             util_open_path(a.strip())
 
-      subprocess.call(['vim', entry_dir + entries[-1]])
+      subprocess.call(['vim', os.path.join(entry_dir, entries[-1])])
 
 def command_open(args, folder=entry_dir):
    """
    open the filename provided
    """
    filename = args['<filename>']
-   target = folder + filename
+   target = os.path.join(folder, filename)
 
    if os.path.exists(target):
       if args['--attachments']:
@@ -487,6 +484,7 @@ def util_search(args):
 
 def get_entries(project=None, date=None, keywords=None):
    """ return a filtered list of entry objects """
+
    files = os.listdir(entry_dir)
    files = [e for e in files if e.endswith('.md')]
    files.sort()
