@@ -22,6 +22,7 @@ Options:
   -d --date=<datestr>   Date specifier YYMMDD                     (new, list)
   -l --long             Long                                   (list, search)
   -a --attachments      Attachments                        (last, list, open)
+  -n --number=<int>     Number    [default: 15]                        (list)
 
 
 Notes:
@@ -337,6 +338,7 @@ def command_open(args, folder=entry_dir):
 def command_list(args):
    """
    list the entries in the entry folder
+   -n <Num> list the last n (default 15)
    -a will filter by has attachments
    -l is the long list
    -l -a will additionally list attachments
@@ -371,6 +373,11 @@ def command_list(args):
 
       if args['--attachments']:
          entries = [x for x in entries if len(x.attachments) > 1]
+
+      if args['--number']:
+         N = int(args['--number'])
+         if len(entries) >= N:
+            entries = entries[-N:]
 
       # long list entries
       if args['--long']:
