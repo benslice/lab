@@ -10,6 +10,7 @@ Usage:
    lab [options] last
    lab [options] list [projects | keywords]
    lab [options] search <search_string>
+   lab [options] todo
    lab [options] validate
    lab [options] replace <string1> <string2>
    lab shots
@@ -27,6 +28,7 @@ Notes:
    `search` is implemented with fgrep, and does not support regex
    Print a ToDo list with (e.g.)
        lab search '[ ]' -l | enscript -r -2
+   "lab todo" is now an alias for "lab search '[ ]'
 
 """
 
@@ -457,6 +459,11 @@ def util_open_path(path, reveal=False, text=False):
       print('failed: %s' % command)
       print('call to "open" returned: '+str(ret_code), file=sys.stderr)
 
+def util_search_todo(args):
+   """ an alias for search '[ ]'"""
+   args['<search_string>'] = '[ ]'
+   util_search(args)
+
 def util_search(args):
    """ does an fgrep """
    entries = get_entries(project=args['--project'],
@@ -518,6 +525,8 @@ if __name__ == '__main__':
       util_open_path(shot_dir)
    elif args['search']:
       util_search(args)
+   elif args['todo']:
+      util_search_todo(args)
    elif args['replace']:
       command_replace(args)
    else:
