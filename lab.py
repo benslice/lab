@@ -72,6 +72,7 @@ class entry:
       read in entry from a file or create a blank entry
       if filename is passed load it
       passed in values may be overwritten by file contents (e.g. project)
+      
       """
 
       # overwrite some passed in Nones
@@ -109,22 +110,24 @@ class entry:
       if self.project is None:
          self.project = 'entry'
 
-
-      #  import ipdb; ipdb.set_trace()
-      # file contents overwrite supplied options, do last
       if os.path.exists(os.path.join(self.folder, self.filename)):
-         contents = self.parse_sections(os.path.join(self.folder , self.filename))
-         self.date        = contents['Date']
-         self.date_str    = contents['DateStr']
-         self.location    = contents['Location']
-         self.project     = contents['Project']
-         self.keywords    = contents['Keywords']
-         self.goal        = contents['Goal']
-         self.log         = contents['Log Entry']
-         self.summary     = contents['Summary']
-         self.attachments = contents['Attachments']
-         self.previous    = contents['Previous'] 
-         self.next        = contents['Next']
+         try:
+            contents = self.parse_sections(os.path.join(self.folder , self.filename))
+            self.date        = contents['Date']
+            self.date_str    = contents['DateStr']
+            self.location    = contents['Location']
+            self.project     = contents['Project']
+            self.keywords    = contents['Keywords']
+            self.goal        = contents['Goal']
+            self.log         = contents['Log Entry']
+            self.summary     = contents['Summary']
+            self.attachments = contents['Attachments']
+            self.previous    = contents['Previous'] 
+            self.next        = contents['Next']
+         except KeyError as err:
+            sys.exit('error parsing %s section of %s' % (err, self.filename))
+         except:
+            sys.exit('unknown error parsing %s' % self.filename)
 
    def has_keywords(self, keywords):
       """ parse keyword strings to sets and check for intersection """
