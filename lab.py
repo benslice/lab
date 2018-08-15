@@ -353,20 +353,51 @@ def command_list(args):
 
    # special commands, list projects or keywords
    if args['projects']:
-      result = list(set([x.project for x in entries]))
-      result.sort()
+
+      project_list = [x.project for x in entries]
+      project_set = sorted(list(set(project_list)))
+
       if args['--long']:
-         result = ['"'+x+'"' for x in result]
-      [print(x) for x in result]
+         num_entries = [project_list.count(x) for x in project_set]
+
+         # also wrap in quotes
+         project_set = ["'"+x+"'" for x in project_set]
+
+         # sort indexes, using the count as the sorting key
+         ix = sorted(range(len(project_set)), reverse=True, key=lambda k: num_entries[k])
+         num_entries = [num_entries[k] for k in ix]
+         project_set = [project_set[k] for k in ix]
+         field_width = max([len(x) for x in project_set])+4
+         format_string = '{0: <%s} {1: >3d}' % field_width
+
+         for x,y in zip(project_set, num_entries):
+            print(format_string.format(x,y))
+
+      else:
+         [print(x) for x in project_set]
+
    elif args['keywords']:
-      result = []
+      keyword_list = []
       for e in entries:
-         result.extend([x.strip() for x in e.keywords.split(',')])
-      result = list(set(result))
-      result.sort()
+         keyword_list.extend([x.strip() for x in e.keywords.split(',')])
+
+      keyword_set = sorted(list(set(keyword_list)))
+
       if args['--long']:
-         result = ['"'+x+'"' for x in result]
-      [print(x) for x in result]
+         num_entries = [keyword_list.count(x) for x in keyword_set]
+
+         keyword_set = ["'"+x+"'" for x in keyword_set]
+         ix = sorted(range(len(keyword_set)), reverse=True, key=lambda k: num_entries[k])
+         num_entries = [num_entries[k] for k in ix]
+         keyword_set = [keyword_set[k] for k in ix]
+         field_width = max([len(x) for x in keyword_set])+4
+         format_string = '{0: <%s} {1: >3d}' % field_width
+
+         for x,y in zip(keyword_set, num_entries):
+            print(format_string.format(x,y))
+
+      else:
+         [print(x) for x in keyword_set]
 
    # default, list entries
    else:
