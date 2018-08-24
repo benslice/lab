@@ -32,6 +32,8 @@ Notes:
        lab search '[ ]' -l | enscript -r -2
    "lab todo" is now an alias for "lab search '[ ]'
 
+   "lab shots" and "lab entries" open those locations
+
 """
 
 from docopt import docopt
