@@ -14,6 +14,7 @@ Usage:
    lab [options] validate
    lab [options] replace <string1> <string2>
    lab shots
+   lab entries
 
 Options:
   -h --help             Show this help
@@ -561,6 +562,8 @@ if __name__ == '__main__':
       command_validate(args)
    elif args['shots']:
       util_open_path(shot_dir)
+   elif args['entries']:
+      util_open_path(entry_dir)
    elif args['search']:
       util_search(args)
    elif args['todo']:
